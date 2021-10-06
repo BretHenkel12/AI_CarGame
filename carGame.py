@@ -1,8 +1,14 @@
-#Changes to make
-# 1. Add to GitHub
-# 2. Fix resuming
-# 3.
+#Made by Bret Henkel
+#Fall 2021
+#Built upon machineLearningLib2, a module also made by Bret
 
+
+
+#Create another variable that has the best score from the player car, and then reset player cars checkpoints to zero at each death/gen
+
+
+
+#Import all necessary libraries/modules
 import pygame
 import numpy as np
 import pandas as pd
@@ -13,12 +19,12 @@ import machineLearningLib2 as ML
 import math
 import pickle
 
-#Set up variables
-#doing something
-spawnZone = False
+
+#Set up variables important to the game
+spawnZone = True
 player = True
 load = False
-resume = True
+resume = False
 if load:
     loadFileName = input("File Name? \n")
 if resume:
@@ -93,7 +99,10 @@ class Car(pygame.sprite.Sprite):
         self.time = 0
         self.parent = parent
     def draw(self):
-        rotatedImage = pygame.transform.rotate(carImage, -int(self.angle))
+        if self.number == -1:
+            rotatedImage = pygame.transform.rotate(playerImage, -int(self.angle))
+        else:
+            rotatedImage = pygame.transform.rotate(carImage, -int(self.angle))
         self.angleR = self.angle * np.pi / 180
         # self.rotatedImage.set_alpha(150)
         self.pos = rotatedImage.get_rect()
@@ -232,8 +241,8 @@ def createModdedCar(weights,biases,parent, sigma):
 
 #Set up blue car
 p_pd_weights, p_np_weights, p_pd_biases, p_np_biases = ML.getWeightedArrays(dim_array)
-carImage = pygame.image.load("C:/Users/breth/Documents/Programming/Python/MachineLearning/carGame/BretCar.png").convert_alpha()
-car1 = Car(p_np_weights,p_np_biases,carImage,-1,-2)
+playerImage = pygame.image.load("C:/Users/breth/Documents/Programming/Python/MachineLearning/carGame/BretCar.png").convert_alpha()
+car1 = Car(p_np_weights,p_np_biases,playerImage,-1,-2)
 car1.center = startingPos
 car1.angle = startingAngle
 
@@ -393,10 +402,10 @@ while True:
             car1.center = startingPos
             car1.angle = startingAngle
             car1.speed = 2
+            car1.time = 0
             backwards = False
             p_pd_weights, p_np_weights, p_pd_biases, p_np_biases = ML.getWeightedArrays(dim_array)
             car1.dead = True
-
             cycles = 0
             state = np.array([0, 0, 0, 0, 0])
 
@@ -512,6 +521,7 @@ while True:
         car1.speed = 2
         finishedCount = finished
         finished = 0
+        car1.time = 0
         if not showScreen:
             print(bestCars[0][2], bestCars[1][2], bestCars[2][2], bestCars[3][2], bestCars[4][2])
         for car in bestCars:
@@ -559,17 +569,6 @@ while True:
             car.checkScore()
             cars.remove(car)
 
-#Print other stuff
-'''pd.DataFrame.to_csv(h1_weights,"h1")
-pd.DataFrame.to_csv(h2_weights,"h2")
-pd.DataFrame.to_csv(z_weights,"z")
-h1_weights, h2_weights,z_weights = ML.add_names(bestN[0],bestN[1],bestN[2])
-print()
-print(h1_weights)
-print()
-print(h2_weights)
-print()
-print(z_weights)
-print()'''
+
 
 sys.exit()
