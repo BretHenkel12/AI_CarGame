@@ -3,9 +3,6 @@
 # 2. Fix resuming
 # 3.
 
-
-
-
 import pygame
 import numpy as np
 import pandas as pd
@@ -21,9 +18,11 @@ import pickle
 spawnZone = False
 player = True
 load = False
-resume = False
-loadFileName = 'savingMyCars'
-resumeFileName = 'd'
+resume = True
+if load:
+    loadFileName = input("File Name? \n")
+if resume:
+    resumeFileName = input("File Name? \n")
 numCars = 100
 anglesDeg = pd.Series([-90, -40, -15, -5, 0, 5, 15, 40, 90])
 numberOfInputs = len(anglesDeg) + 1
@@ -268,25 +267,12 @@ def save(obj,filename):
     except:
         print("failed save")
 
-'''def saveGroup(group,filename):
-    with open(filename, 'wb') as output:
-        objList = []
-        print('here 1243')
-        for x in group:
-            importantInfo = [x.weights,x.biases,x.number,x.parent,x.time,x.checkPoints,x.state,x.speed,x.angleR,
-                             x.maxTurningrate,x.turningRate,x.angle,x.dead,x.pos]
-            objList.append(importantInfo)
-        pickle.dump(objList, output,-1)
-        print("here ya go")'''
-
 def saveGroup(group,filename):
     with open(filename, 'wb') as output:
         objList = []
-        print('here 1243')
         for x in group:
             objList.append(x)
         pickle.dump(objList, output, -1)
-        print("here ya go")
 
 
 
@@ -341,29 +327,10 @@ def screenScoreStuff():
 
 
 
-'''if resume:
-    resumeFileName += '.pickle'
-    print('resuming')
-    print(resumeFileName)
-    with open(resumeFileName, 'rb') as data:
-        carData = pickle.load(data)
-        for x in carData:
-            car = Car(x[0],x[1],x[2],x[3],x[4])
-            car.time = x[5]
-            car.checkPoints = x[6]
-            car.state = x[7]
-            car.speed = x[8]
-            car.angleR = x[9]
-            car.rotatedImage = x[10]
-            car.maxTurningrate = x[11]
-            car.turningRate = x[12]
-            car.angle = x[13]
-            car.dead = x[14]
-            car.pos = x[15]
-            cars.add(car)
-        print('success')'''
+
 
 if resume:
+    resumeFileName2 = resumeFileName + '2.pickle'
     resumeFileName += '.pickle'
     print('resuming')
     print(resumeFileName)
@@ -372,6 +339,8 @@ if resume:
         for car in carData:
             cars.add(car)
         print('success')
+    with open(resumeFileName2, 'rb') as inp:
+        oldBestCars = pickle.load(inp)
 
 
 while True:
@@ -480,8 +449,10 @@ while True:
         resumeFile = ''
         resumeFile = input()
         print(resumeFile)
+        resumeFile2 = resumeFile + '2.pickle'
         resumeFile = resumeFile + '.pickle'
         saveGroup(cars, resumeFile)
+        save(oldBestCars,resumeFile2)
         print("printing cars")
         print(cars)
     elif keys[pygame.K_s]:
