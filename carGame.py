@@ -18,8 +18,8 @@ import pickle
 #Game settings, general
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
-spawnZone = True #Prevents cars from spawning on top of each other
-player = False #Allows a player to drive around a car
+spawnZone = False #Prevents cars from spawning on top of each other
+player = True #Allows a player to drive around a car
 load = False #Loads a previous file if True
 resume = False #Resumes from a previous save point if True
 yellowLines = True #Turns on and off the yellow lines emitting from each car
@@ -34,7 +34,7 @@ anglesDeg = pd.Series([-90, -40, -15, -5, 0, 5, 15, 40, 90]) #Angles that measur
 lineMax = 300 #max length in pixels of yellow lines
 turningCoeff = 40 #Helps determine the max turning rate of the car
 steeringFactor = 10 #Determines the how much the steering affects the turning rate
-limitTurningRate = 0 #The maximum turning rate for the cars, will be based on speed
+limitTurningRate = 5 #The maximum turning rate for the cars, will be based on speed
 maxAcceleration = 0.25 #The max acceleration of the car
 maxSpeed = 8 #The max speed of the car
 bestCarsRemembered = 5 #Amount of top cars remembered from all generations, these cars determine future gens
@@ -131,6 +131,7 @@ class Car(pygame.sprite.Sprite):
         #Saves the ID number of the car that the current car is based off of
         self.parent = parent
 
+
     #A function to draw the car to the screen
     def draw(self):
         if self.number == -1:
@@ -144,11 +145,13 @@ class Car(pygame.sprite.Sprite):
         self.corner = [self.center[0] - self.pos.width / 2, self.center[1] - self.pos.height / 2]
         screen.blit(rotatedImage, self.corner)
 
+
     #A function to move the car forward
     def move(self):
         movement = (self.speed * np.cos(self.angleR), self.speed * np.sin(self.angleR))
         self.center = (self.center[0] + movement[0], self.center[1] + movement[1])
         self.time += 1
+
 
     #Finds the length of each line emitting from the car and returns an array of the distances
     def drawLines(self):
@@ -157,6 +160,7 @@ class Car(pygame.sprite.Sprite):
             returnValue.append(self.findIntersectionOfLine(self.center[0],self.center[1],i,lineMax))
         returnValue = np.array(returnValue).astype(float)
         return(returnValue)
+
 
     #Determines the intersection of each line and draws them to the screen
     def findIntersectionOfLine(self,x_0,y_0,relativeAngle,maxDistance):
@@ -173,6 +177,7 @@ class Car(pygame.sprite.Sprite):
             pygame.draw.line(screen, yellow, (x_0,y_0), (x,y))
         return i
 
+
     #Determines if the car center has gone off of the track
     def checkCollision(self):
         try:
@@ -183,6 +188,7 @@ class Car(pygame.sprite.Sprite):
             return True
         return False
 
+
     #Adjusts the speed of the car based off of the acceleration
     def adjustSpeed(self,acceleration):
         acceleration = maxAcceleration*acceleration
@@ -191,6 +197,7 @@ class Car(pygame.sprite.Sprite):
             self.speed = 0
         elif self.speed > maxSpeed:
             self.speed = maxSpeed
+
 
     #Turns the car based on the turning acceleration
     def turn(self,turningAcceleration):
@@ -206,6 +213,7 @@ class Car(pygame.sprite.Sprite):
         elif self.turningRate < -1*self.maxTurningrate:
             self.turningRate = -1*self.maxTurningrate
         self.angle += self.turningRate
+
 
     #Determines if the car has reached a new checkpoint (white line). If so appends the frame count to get to that
     #checkpoint to the end of the checkpoints list
@@ -441,14 +449,9 @@ while True:
         print(saveFile)
         saveFile = saveFile + '.pickle'
         save(oldBestCars, saveFile)
-    if exit:
-        print()
-        print("printing old best cars")
-        print(oldBestCars[0][0], oldBestCars[1][0], oldBestCars[2][0], oldBestCars[3][0], oldBestCars[4][0])
-        print(oldBestCars[0][1], oldBestCars[1][1], oldBestCars[2][1], oldBestCars[3][1], oldBestCars[4][1])
-        print()
-        print(oldBestCars)
-        break
+
+
+
 
 
     #Determines player movement
@@ -616,5 +619,8 @@ while True:
             car.checkScore()
             cars.remove(car)
 
+    # Handles exiting of the game
+    if exit:
+        break
 
 sys.exit()
