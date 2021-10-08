@@ -3,11 +3,6 @@
 #Built upon machineLearningLib2, a module also made by Bret
 
 
-
-#Create another variable that has the best score from the player car, and then reset player cars checkpoints to zero at each death/gen
-
-
-
 #Import all necessary libraries/modules
 import pygame
 import numpy as np
@@ -20,38 +15,50 @@ import math
 import pickle
 
 
-#Set up variables important to the game
-spawnZone = True
-player = True
-load = False
-resume = False
+#Game settings, general
+#------------------------------------------------------------------------------------
+spawnZone = True #Prevents cars from spawning on top of each other
+player = False #Allows a player to drive around a car
+load = False #Loads a previous file if True
+resume = False #Resumes from a previous save point if True
+yellowLines = True #Turns on and off the yellow lines emitting from each car
+limitedFrameRate = True #Limits the frame rate to a maximum of 60 fps
+
+#Game settings, fine tuning
+#------------------------------------------------------------------------------------
+numCars = 100 #Max number of cars
+anglesDeg = pd.Series([-90, -40, -15, -5, 0, 5, 15, 40, 90]) #Angles that measurement lines emit at
+lineMax = 300 #max length in pixels of yellow lines
+turningCoeff = 40 #Helps determine the max turning rate of the car
+steeringFactor = 10 #Determines the how much the steering affects the turning rate
+limitTurningRate = 0 #The maximum turning rate for the cars, will be based on speed
+maxAcceleration = 0.25 #The max acceleration of the car
+maxSpeed = 8 #The max speed of the car
+bestCarsRemembered = 5 #Amount of top cars remembered from all generations, these cars determine future gens
+
+
+numberOfInputs = len(anglesDeg) + 1
+dim_array = [numberOfInputs, 8, 12, 10, 2]
+
+
 if load:
     loadFileName = input("File Name? \n")
 if resume:
     resumeFileName = input("File Name? \n")
-numCars = 100
-anglesDeg = pd.Series([-90, -40, -15, -5, 0, 5, 15, 40, 90])
-numberOfInputs = len(anglesDeg) + 1
-dim_array = [numberOfInputs, 8, 12, 10, 2]
-lineMax = 300
-yellowLines = True
-turningCoeff = 40
-steeringFactor = 10
-limitTurningRate = 5
-maxAcceleration = 0.25
-maxSpeed = 8
-bestCarsRemembered = 5
+
+
+
 carCount = 0
 parentNumber = 0
 initialLoop = True
 carNumber = 0
-showScreen = True
-limitedFrameRate = True
+
 generationCount = 0
 reducingSigma = True
 ultraReducingSigma = True
 finished = 0
 finishedCount = 0
+playerBest = []
 
 #Basic variables
 pygame.init()
@@ -324,8 +331,8 @@ def screenScoreStuff():
     s5 = str(oldBestCars[4][2]) + '   ' + str(s5_score) + '   ' + str(oldBestCars[4][0]) + '   ' + str(oldBestCars[4][1])
     score5 = myfont.render(s5, False, (255, 255, 255))
     try:
-        s_length = len(car1.checkPoints)
-        s = car1.checkPoints[-1]
+        s_length = len(playerBest)
+        s = playerBest[-1]
     except:
         s = 0
     playerScore = myfont.render(str(s_length) + '   ' + str(s), False, (255, 255, 255))
@@ -399,6 +406,15 @@ while True:
         car1.draw()
         state = car1.drawLines()
         if (car1.checkCollision()) | backwards:
+            if len(car1.checkPoints) > len(playerBest):
+                playerBest = car1.checkPoints
+            elif len(car1.checkPoints) == len(playerBest):
+                try:
+                    if playerBest[-1] > car1.checkPoints[-1]:
+                        playerBest = car1.checkPoints
+                except:
+                    None
+            car1.checkPoints = []
             car1.center = startingPos
             car1.angle = startingAngle
             car1.speed = 2
@@ -506,12 +522,12 @@ while True:
                     ultraReducingSigma = False
                     sigma = 0.075
                 parentNumber += 1
-                if parentNumber == 5:
+                if parentNumber == bestCarsRemembered:
                     parentNumber = 0
                 createModdedCar(weights,baises,parent, sigma)
                 carCount += 1
                 carNumber += 1
-    if numCars - carCount == 0 and len(cars) == 0 and car1.dead:
+    if numCars - carCount == 0 and len(cars) == 0 and (car1.dead or player == False):
         car1.dead = False
         carCount = 0
         screenScoreStuff()
